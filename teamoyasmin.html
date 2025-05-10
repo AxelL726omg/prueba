@@ -24,6 +24,7 @@
             text-align: center;
             letter-spacing: 2px;
             animation: float 3s ease-in-out infinite;
+            z-index: 2; /* Asegura que el texto quede encima de los corazones */
         }
 
         @keyframes float {
@@ -41,6 +42,7 @@
             color: #fff;
             opacity: 0; /* Comienza invisible */
             animation: floatHearts 5s linear 5s infinite; /* Retraso de 5 segundos antes de empezar */
+            z-index: 1; /* Asegura que los corazones queden detrás del texto */
         }
 
         @keyframes floatHearts {
@@ -56,4 +58,46 @@
 
         .heart:nth-child(1) {
             left: 10%;
-            animation
+            animation-duration: 6s;
+            animation-delay: 5s;
+        }
+
+        .heart:nth-child(2) {
+            left: 20%;
+            animation-duration: 7s;
+            animation-delay: 5s;
+        }
+
+        .heart:nth-child(3) {
+            left: 30%;
+            animation-duration: 8s;
+            animation-delay: 5s;
+        }
+
+        .heart:nth-child(4) {
+            left: 40%;
+            animation-duration: 9s;
+            animation-delay: 5s;
+        }
+
+        .heart:nth-child(5) {
+            left: 50%;
+            animation-duration: 6s;
+            animation-delay: 5s;
+        }
+
+        /* Posicionar los corazones hacia la parte inferior */
+        .heart {
+            bottom: 10px; /* Coloca los corazones cerca de la parte inferior */
+        }
+    </style>
+</head>
+<body>
+    <h1>Te amo mucho Yasmin</h1>
+    <div class="heart">♥</div>
+    <div class="heart">♥</div>
+    <div class="heart">♥</div>
+    <div class="heart">♥</div>
+    <div class="heart">♥</div>
+</body>
+</html>
