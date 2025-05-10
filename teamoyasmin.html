@@ -39,57 +39,21 @@
             position: absolute;
             font-size: 2rem;
             color: #fff;
-            animation: floatHearts 5s linear infinite;
+            opacity: 0; /* Comienza invisible */
+            animation: floatHearts 5s linear 5s infinite; /* Retraso de 5 segundos antes de empezar */
         }
 
         @keyframes floatHearts {
             0% {
                 transform: translateY(100vh) rotate(0);
-                opacity: 1;
+                opacity: 1; /* Aparece al principio */
             }
             100% {
                 transform: translateY(-10vh) rotate(360deg);
-                opacity: 0;
+                opacity: 0; /* Se desvanece al final */
             }
         }
 
         .heart:nth-child(1) {
             left: 10%;
-            animation-duration: 6s;
-            animation-delay: 0s;
-        }
-
-        .heart:nth-child(2) {
-            left: 20%;
-            animation-duration: 7s;
-            animation-delay: 1s;
-        }
-
-        .heart:nth-child(3) {
-            left: 30%;
-            animation-duration: 8s;
-            animation-delay: 2s;
-        }
-
-        .heart:nth-child(4) {
-            left: 40%;
-            animation-duration: 9s;
-            animation-delay: 3s;
-        }
-
-        .heart:nth-child(5) {
-            left: 50%;
-            animation-duration: 6s;
-            animation-delay: 4s;
-        }
-    </style>
-</head>
-<body>
-    <h1>Te amo mucho Yasmin</h1>
-    <div class="heart">♥</div>
-    <div class="heart">♥</div>
-    <div class="heart">♥</div>
-    <div class="heart">♥</div>
-    <div class="heart">♥</div>
-</body>
-</html>
+            animation
