@@ -1,53 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Enviar Datos</title>
-  <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, button { padding: 10px; font-size: 16px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conexión MQTT con Flespi</title>
+    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
+    <h1>Mensajes de Flespi - Topic: juan23/chat</h1>
+    <div id="messages"></div>
 
-  <h2>Enviar Datos</h2>
-  
-  <input type="text" id="texto" placeholder="Escribí algo" />
-  <button onclick="enviar()">Enviar</button>
+    <script>
+        // Token de acceso de Flespi
+        const token = 'tu_token_de_acceso';  // Reemplaza con tu token de Flespi
 
-  <script>
-    const TOKEN = "lwsQrY5Fd5EojF6RGubjOtHxQML4P9VmaYyLXeUG74VANy7Itn8W5GSVdnZurODR";  // 🔐 Tu token
-    const TOPIC = "juan23/chat";  // 🧵 El mismo topic
+        // Configuración de la conexión MQTT con el token
+        const client = mqtt.connect('wss://flespi.io/mqtt', {
+            clientId: token  // Usa el token como clientId
+        });
 
-    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "cliente-" + Math.random());
+        // Conexión exitosa
+        client.on('connect', function () {
+            console.log('Conectado a Flespi');
 
-    client.onConnectionLost = (e) => {
-      console.log("Conexión perdida:", e.errorMessage);
-    };
+            // Suscribirse al topic "juan23/chat"
+            client.subscribe('juan23/chat', function (err) {
+                if (err) {
+                    console.error('Error al suscribirse al topic');
+                } else {
+                    console.log('Suscrito al topic juan23/chat');
+                }
+            });
+        });
 
-    client.connect({
-      useSSL: true,
-      userName: TOKEN,
-      password: "",
-      onSuccess: () => {
-        console.log("Conectado");
-      },
-      onFailure: (e) => {
-        console.log("Error al conectar:", e.errorMessage);
-      }
-    });
+        // Recibir mensajes del topic y mostrarlos en la página
+        client.on('message', function (topic, message) {
+            if (topic === 'juan23/chat') {
+                const msg = message.toString();
+                const messageDiv = document.getElementById('messages');
+                messageDiv.innerHTML += `<p>${msg}</p>`;
+            }
+        });
 
-    function enviar() {
-      const texto = document.getElementById("texto").value;
-      if (texto) {
-        const msg = new Paho.MQTT.Message(texto);
-        msg.destinationName = TOPIC;
-        client.send(msg);
-        console.log("Mensaje enviado: " + texto);
-      }
-    }
-  </script>
+        // Manejo de desconexión
+        client.on('close', function () {
+            console.log('Conexión cerrada');
+        });
 
+        // Manejo de errores
+        client.on('error', function (err) {
+            console.error('Error en la conexión MQTT:', err);
+        });
+    </script>
 </body>
 </html>
