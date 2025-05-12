@@ -1,33 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat Web MQTT</title>
+  <title>Enviar Datos</title>
   <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     input, button { padding: 10px; font-size: 16px; }
-    #labelRecibido { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h2>Comunicación Web MQTT</h2>
+  <h2>Enviar Datos</h2>
   
   <input type="text" id="texto" placeholder="Escribí algo" />
-  <button onclick="enviar()">Enviar al otro</button>
-
-  <div id="labelRecibido">Esperando mensaje...</div>
+  <button onclick="enviar()">Enviar</button>
 
   <script>
-    const TOKEN = "FlespiToken lwsQrY5Fd5EojF6RGubjOtHxQML4P9VmaYyLXeUG74VANy7Itn8W5GSVdnZurODR"; // 🔐 Pegá tu token
-    const TOPIC = "juan23/chat"; // 🧵 Usá el mismo en las dos webs
+    const TOKEN = "lwsQrY5Fd5EojF6RGubjOtHxQML4P9VmaYyLXeUG74VANy7Itn8W5GSVdnZurODR";  // 🔐 Tu token
+    const TOPIC = "juan23/chat";  // 🧵 El mismo topic
 
     const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "cliente-" + Math.random());
-
-    client.onMessageArrived = (msg) => {
-      document.getElementById("labelRecibido").textContent = "Recibido: " + msg.payloadString;
-    };
 
     client.onConnectionLost = (e) => {
       console.log("Conexión perdida:", e.errorMessage);
@@ -38,11 +31,10 @@
       userName: TOKEN,
       password: "",
       onSuccess: () => {
-        console.log("✅ Conectado");
-        client.subscribe(TOPIC);
+        console.log("Conectado");
       },
       onFailure: (e) => {
-        console.log("❌ Error al conectar:", e.errorMessage);
+        console.log("Error al conectar:", e.errorMessage);
       }
     });
 
@@ -52,8 +44,10 @@
         const msg = new Paho.MQTT.Message(texto);
         msg.destinationName = TOPIC;
         client.send(msg);
+        console.log("Mensaje enviado: " + texto);
       }
     }
   </script>
+
 </body>
 </html>
