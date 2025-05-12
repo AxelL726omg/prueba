@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Conexión MQTT a Flespi</title>
+  <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
+</head>
+<body>
+  <h2>MQTT con Flespi</h2>
+  
+  <input type="text" id="mensaje" placeholder="Escribí un mensaje" />
+  <button onclick="enviarMensaje()">Enviar</button>
+
+  <div id="mensajes"></div>
+
+  <script>
+    // 🔐 Reemplazá con tu token real (copiá y pegá desde Flespi)
+    const TOKEN = "FlespiToken TU_TOKEN_ACA";
+
+    // 🧵 Tema al que te vas a conectar (puede ser cualquiera)
+    const TOPIC = "juan23/chat";
+
+    // 🛰️ Crear cliente MQTT WebSocket
+    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "cliente-web-" + Math.random());
+
+    // 📡 Mensaje recibido
+    client.onMessageArrived = (message) => {
+      const div = document.getElementById("mensajes");
+      div.innerHTML += `<p><strong>Recibido:</strong> ${message.payloadString}</p>`;
+    };
+
+    // ❌ Conexión perdida
+    client.onConnectionLost = (e) => {
+      console.error("Conexión perdida:", e.errorMessage);
+    };
+
+    // ✅ Conexión exitosa
+    client.connect({
+      useSSL: true,
+      userName: TOKEN,
+      password: "",
+      onSuccess: () => {
+        console.log("✅ Conectado a Flespi");
+        client.subscribe(TOPIC);
+      },
+      onFailure: (e) => {
+        console.error("❌ Error al conectar:", e.errorMessage);
+      }
+    });
+
+    // ✉️ Enviar mensaje
+    function enviarMensaje() {
+      const texto = document.getElementById("mensaje").value;
+      if (texto) {
+        const message = new Paho.MQTT.Message(texto);
+        message.destinationName = TOPIC;
+        client.send(message);
+      }
+    }
+  </script>
+</body>
+</html>
