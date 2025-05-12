@@ -1,54 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>MQTT con Flespi - Chat Juan23</title>
+  <title>MQTT Web Client</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js"></script>
 </head>
 <body>
-  <h2>Chat MQTT - Topic: juan23/chat</h2>
-
-  <input type="text" id="mensaje" placeholder="Escribí tu mensaje">
-  <button onclick="enviarMensaje()">Enviar</button>
-
-  <div id="mensajes" style="margin-top:20px;"></div>
+  <h2>Mensajes recibidos en juan23/chat:</h2>
+  <div id="messages"></div>
 
   <script>
-    // Crear cliente MQTT
-    const clientId = "web_" + Math.random().toString(16).substr(2, 8);
-    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, clientId);
+    // Configuración del cliente
+    const broker = "wss://mqtt.flespi.io:443";
+    const topic = "juan23/chat";
 
-    // Conexión
+    // Reemplaza con tu token real de Flespi
+    const flespiToken = "FlespiToken feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV";
+
+    const clientID = "webclient_" + parseInt(Math.random() * 10000);
+    const client = new Paho.MQTT.Client(broker, clientID);
+
+    // Función de conexión
     client.connect({
       useSSL: true,
-      userName: "FlespiToken",
-      password: "feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV", // <-- Reemplazá con tu token de Flespi
-      onSuccess: () => {
-        console.log("✅ Conectado a Flespi");
-        client.subscribe("juan23/chat");
-      },
+      onSuccess: onConnect,
+      userName: flespiToken,
       onFailure: (err) => {
-        console.error("❌ Error de conexión:", err.errorMessage);
+        console.error("Error al conectar:", err);
       }
     });
 
-    // Al llegar un mensaje
-    client.onMessageArrived = (mensaje) => {
-      const div = document.getElementById("mensajes");
-      div.innerHTML += `<p>📥 <strong>Recibido:</strong> ${mensaje.payloadString}</p>`;
+    // Función cuando conecta correctamente
+    function onConnect() {
+      console.log("Conectado al broker");
+      client.subscribe(topic);
+    }
+
+    // Función cuando llega un mensaje
+    client.onMessageArrived = function(message) {
+      console.log("Mensaje recibido:", message.payloadString);
+      const msgDiv = document.getElementById("messages");
+      msgDiv.innerHTML += "<p>" + message.payloadString + "</p>";
     };
 
-    // Enviar mensaje
-    function enviarMensaje() {
-      const input = document.getElementById("mensaje");
-      const texto = input.value.trim();
-      if (texto) {
-        const msg = new Paho.MQTT.Message(texto);
-        msg.destinationName = "juan23/chat";
-        client.send(msg);
-        input.value = "";
+    // Función si se pierde la conexión
+    client.onConnectionLost = function(responseObject) {
+      if (responseObject.errorCode !== 0) {
+        console.log("Conexión perdida:", responseObject.errorMessage);
       }
-    }
+    };
   </script>
 </body>
 </html>
