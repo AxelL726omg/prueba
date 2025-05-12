@@ -2,54 +2,51 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Chat MQTT - juan23/chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ✅ Cargar la librería MQTT -->
+  <title>Conexión MQTT con Flespi</title>
   <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
 </head>
 <body>
-  <h2>Mensajes del topic: juan23/chat</h2>
-  <div id="mensajes" style="border:1px solid #ccc; padding:10px; width:300px; height:200px; overflow-y:scroll;"></div>
+  <h1>Conexión MQTT con Flespi</h1>
+  <p><strong>Mensaje recibido:</strong></p>
+  <label id="mensaje">Esperando mensaje...</label>
 
   <script>
-    // Esperar a que se cargue todo
-    window.onload = function () {
-      // ⚠️ Reemplazá con tu token generado desde flespi.io
-      const TOKEN = "feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV";
+    // Crear cliente MQTT
+    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "cliente-web-" + Math.random());
 
-      const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "clientId-" + Math.random());
+    // Token de acceso de Flespi
+    const flespiToken = "FlespiToken feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV"; // Poné tu token aquí
 
-      const options = {
-        useSSL: true,
-        userName: "FlespiToken",
-        password: TOKEN,
-        onSuccess: onConnect,
-        onFailure: (err) => {
-          console.error("Error de conexión:", err.errorMessage);
-        }
-      };
-
-      client.connect(options);
-
-      function onConnect() {
-        console.log("Conectado al broker MQTT de flespi");
-        client.subscribe("juan23/chat");
+    // Configuración de callbacks
+    client.onConnectionLost = function(responseObject) {
+      if (responseObject.errorCode !== 0) {
+        console.log("Conexión perdida:", responseObject.errorMessage);
       }
-
-      client.onMessageArrived = function (message) {
-        const mensajesDiv = document.getElementById("mensajes");
-        const nuevoMensaje = document.createElement("div");
-        nuevoMensaje.textContent = message.payloadString;
-        mensajesDiv.appendChild(nuevoMensaje);
-        mensajesDiv.scrollTop = mensajesDiv.scrollHeight;
-      };
-
-      client.onConnectionLost = function (responseObject) {
-        if (responseObject.errorCode !== 0) {
-          console.error("Conexión perdida:", responseObject.errorMessage);
-        }
-      };
     };
+
+    client.onMessageArrived = function(message) {
+      console.log("Mensaje recibido en " + message.destinationName + ": " + message.payloadString);
+      
+      // Actualizar el contenido del label con el mensaje recibido
+      document.getElementById("mensaje").textContent = message.payloadString;
+    };
+
+    // Conexión al broker Flespi
+    client.connect({
+      useSSL: true,
+      userName: flespiToken, // Token como usuario
+      password: "",           // Sin password
+      onSuccess: function() {
+        console.log("Conectado a Flespi MQTT");
+
+        // Suscribirse al topic
+        client.subscribe("juan23/chat");
+      },
+      onFailure: function(error) {
+        console.error("Fallo de conexión:", error);
+      }
+    });
   </script>
 </body>
 </html>
