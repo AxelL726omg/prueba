@@ -3,56 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conexión MQTT con Flespi</title>
-  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+  <title>MQTT Chat - Flespi</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.7/mqtt.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #messages {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      height: 200px;
+      overflow-y: scroll;
+    }
+    input, button {
+      padding: 5px;
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Conexión MQTT con Flespi</h1>
-  <p><strong>Mensaje recibido:</strong></p>
-  <label id="mensaje">Esperando mensaje...</label>
+  <h1>Chat en Flespi MQTT</h1>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." />
+  <button id="sendButton">Enviar</button>
 
   <script>
-    // Crear cliente MQTT
-    const client = mqtt.connect('wss://mqtt.flespi.io:443', {
-      username: 'FlespiToken feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV',  // Reemplazar con tu token de Flespi
-      password: '',  // Sin contraseña
+    // Datos de conexión
+    const brokerUrl = 'wss://mqtt.flespi.io:443'; // URL de Flespi MQTT WebSocket SSL
+    const token = 'feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV'; // Sustituye por tu token de Flespi
+
+    // Conexión MQTT
+    const client = mqtt.connect(brokerUrl, {
+      username: token,
+      password: '', // Deja la contraseña en blanco
     });
 
-    // Callback de conexión
+    // Al conectar
     client.on('connect', function () {
-      console.log('Conectado a Flespi MQTT');
-      // Suscribirse al topic
+      console.log('Conectado al broker MQTT');
+      // Suscripción al topic
       client.subscribe('juan23/chat', function (err) {
         if (err) {
           console.log('Error al suscribirse al topic:', err);
         } else {
-          console.log('Suscripción exitosa al topic "juan23/chat"');
+          console.log('Suscripción exitosa al topic juan23/chat');
         }
       });
     });
 
-    // Callback cuando se recibe un mensaje
+    // Manejo de mensajes recibidos
     client.on('message', function (topic, message) {
-      console.log('Mensaje recibido:', message.toString());
-
-      // Verificar que el mensaje recibido es del topic correcto
       if (topic === 'juan23/chat') {
-        // Mostrar mensaje en el label
-        document.getElementById('mensaje').textContent = message.toString();
-      } else {
-        console.log('Mensaje recibido en un topic no esperado:', topic);
+        const msg = message.toString();
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += `<p><strong>Mensaje recibido:</strong> ${msg}</p>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Desplazar hacia abajo
       }
     });
 
-    // Callback de error
-    client.on('error', function (error) {
-      console.error('Error de conexión:', error);
+    // Enviar mensaje
+    const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+
+    sendButton.addEventListener('click', function () {
+      const message = messageInput.value.trim();
+      if (message) {
+        client.publish('juan23/chat', message); // Enviar mensaje al topic
+        messageInput.value = ''; // Limpiar el input
+        console.log('Mensaje enviado:', message);
+      }
     });
 
-    // Callback de desconexión
-    client.on('close', function () {
-      console.log('Conexión cerrada');
-    });
-  </script>
-</body>
-</html>
+    // Opcional: Limpiar el input cuando presionen Enter
