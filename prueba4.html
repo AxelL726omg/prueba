@@ -9,43 +9,46 @@
   <div id="messages"></div>
 
   <script>
-    // Configuración del cliente
-    const broker = "wss://mqtt.flespi.io:443";
+    // Configuración del broker y topic
+    const brokerHost = "mqtt.flespi.io";
+    const brokerPort = 443;
+    const brokerPath = "/mqtt";
     const topic = "juan23/chat";
 
-    // Reemplaza con tu token real de Flespi
+    // ⚠️ Reemplaza con tu token de acceso de Flespi (desde flespi.io)
     const flespiToken = "FlespiToken feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV";
 
-    const clientID = "webclient_" + parseInt(Math.random() * 10000);
-    const client = new Paho.MQTT.Client(broker, clientID);
+    // Crear cliente con ID aleatorio
+    const clientID = "webclient_" + Math.floor(Math.random() * 10000);
+    const client = new Paho.MQTT.Client(brokerHost, brokerPort, brokerPath, clientID);
 
-    // Función de conexión
+    // Conexión al broker
     client.connect({
       useSSL: true,
-      onSuccess: onConnect,
       userName: flespiToken,
+      onSuccess: onConnect,
       onFailure: (err) => {
-        console.error("Error al conectar:", err);
+        console.error("❌ Error al conectar:", err.errorMessage);
       }
     });
 
-    // Función cuando conecta correctamente
+    // Cuando conecta correctamente
     function onConnect() {
-      console.log("Conectado al broker");
+      console.log("✅ Conectado al broker Flespi");
       client.subscribe(topic);
     }
 
-    // Función cuando llega un mensaje
+    // Cuando se recibe un mensaje
     client.onMessageArrived = function(message) {
-      console.log("Mensaje recibido:", message.payloadString);
+      console.log("📩 Mensaje recibido:", message.payloadString);
       const msgDiv = document.getElementById("messages");
       msgDiv.innerHTML += "<p>" + message.payloadString + "</p>";
     };
 
-    // Función si se pierde la conexión
+    // Si se pierde la conexión
     client.onConnectionLost = function(responseObject) {
       if (responseObject.errorCode !== 0) {
-        console.log("Conexión perdida:", responseObject.errorMessage);
+        console.warn("⚠️ Conexión perdida:", responseObject.errorMessage);
       }
     };
   </script>
