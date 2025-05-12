@@ -1,43 +1,56 @@
-<script>
-    // Token de acceso de Flespi
-    const token = 'feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV';  // Reemplaza con tu token de Flespi
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conexión MQTT con Flespi</title>
+    <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <h1>Mensajes de Flespi - Topic: juan23/chat</h1>
+    <div id="messages"></div>
 
-    // Configuración de la conexión MQTT con el token y el host correcto
-    const client = mqtt.connect('wss://mqtt.flespi.io:8083/mqtt', {
-        clientId: token  // Usa el token como clientId
-    });
+    <script>
+        // Token de acceso de Flespi
+        const token = 'feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV';  // Reemplaza con tu token de Flespi
 
-    // Conexión exitosa
-    client.on('connect', function () {
-        console.log('Conectado a Flespi');
+        // Configuración de la conexión MQTT con el token y el host correcto
+        const client = mqtt.connect('wss://mqtt.flespi.io:8083/mqtt', {
+            clientId: token  // Usa el token como clientId
+        });
 
-        // Suscribirse al topic "juan23/chat"
-        client.subscribe('juan23/chat', function (err) {
-            if (err) {
-                console.error('Error al suscribirse al topic');
-            } else {
-                console.log('Suscrito al topic juan23/chat');
+        // Conexión exitosa
+        client.on('connect', function () {
+            console.log('Conectado a Flespi');
+
+            // Suscribirse al topic "juan23/chat"
+            client.subscribe('juan23/chat', function (err) {
+                if (err) {
+                    console.error('Error al suscribirse al topic');
+                } else {
+                    console.log('Suscrito al topic juan23/chat');
+                }
+            });
+        });
+
+        // Recibir mensajes del topic y mostrarlos en la página
+        client.on('message', function (topic, message) {
+            if (topic === 'juan23/chat') {
+                const msg = message.toString();
+                const messageDiv = document.getElementById('messages');
+                messageDiv.innerHTML += `<p>${msg}</p>`;
             }
         });
-    });
 
-    // Recibir mensajes del topic y mostrarlos en la página
-    client.on('message', function (topic, message) {
-        if (topic === 'juan23/chat') {
-            const msg = message.toString();
-            const messageDiv = document.getElementById('messages');
-            messageDiv.innerHTML += `<p>${msg}</p>`;
-        }
-    });
+        // Manejo de desconexión
+        client.on('close', function () {
+            console.log('Conexión cerrada');
+        });
 
-    // Manejo de desconexión
-    client.on('close', function () {
-        console.log('Conexión cerrada');
-    });
-
-    // Manejo de errores
-    client.on('error', function (err) {
-        console.error('Error en la conexión MQTT:', err);
-    });
-</script>
-
+        // Manejo de errores
+        client.on('error', function (err) {
+            console.error('Error en la conexión MQTT:', err);
+        });
+    </script>
+</body>
+</html>
