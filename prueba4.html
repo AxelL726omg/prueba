@@ -1,78 +1,54 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MQTT Chat - Flespi</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.7/mqtt.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    #messages {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      height: 200px;
-      overflow-y: scroll;
-    }
-    input, button {
-      padding: 5px;
-      margin: 5px;
-    }
-  </style>
+  <title>MQTT con Flespi - Chat Juan23</title>
+  <script src="https://www.eclipse.org/paho/clients/js/mqttws31.min.js"></script>
 </head>
 <body>
-  <h1>Chat en Flespi MQTT</h1>
-  <div id="messages"></div>
-  <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." />
-  <button id="sendButton">Enviar</button>
+  <h2>Chat MQTT - Topic: juan23/chat</h2>
+
+  <input type="text" id="mensaje" placeholder="Escribí tu mensaje">
+  <button onclick="enviarMensaje()">Enviar</button>
+
+  <div id="mensajes" style="margin-top:20px;"></div>
 
   <script>
-    // Datos de conexión
-    const brokerUrl = 'wss://mqtt.flespi.io:443'; // URL de Flespi MQTT WebSocket SSL
-    const token = 'feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV'; // Sustituye por tu token de Flespi
+    // Crear cliente MQTT
+    const clientId = "web_" + Math.random().toString(16).substr(2, 8);
+    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, clientId);
 
-    // Conexión MQTT
-    const client = mqtt.connect(brokerUrl, {
-      username: token,
-      password: '', // Deja la contraseña en blanco
-    });
-
-    // Al conectar
-    client.on('connect', function () {
-      console.log('Conectado al broker MQTT');
-      // Suscripción al topic
-      client.subscribe('juan23/chat', function (err) {
-        if (err) {
-          console.log('Error al suscribirse al topic:', err);
-        } else {
-          console.log('Suscripción exitosa al topic juan23/chat');
-        }
-      });
-    });
-
-    // Manejo de mensajes recibidos
-    client.on('message', function (topic, message) {
-      if (topic === 'juan23/chat') {
-        const msg = message.toString();
-        const messagesDiv = document.getElementById('messages');
-        messagesDiv.innerHTML += `<p><strong>Mensaje recibido:</strong> ${msg}</p>`;
-        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Desplazar hacia abajo
+    // Conexión
+    client.connect({
+      useSSL: true,
+      userName: "FlespiToken",
+      password: "feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV", // <-- Reemplazá con tu token de Flespi
+      onSuccess: () => {
+        console.log("✅ Conectado a Flespi");
+        client.subscribe("juan23/chat");
+      },
+      onFailure: (err) => {
+        console.error("❌ Error de conexión:", err.errorMessage);
       }
     });
+
+    // Al llegar un mensaje
+    client.onMessageArrived = (mensaje) => {
+      const div = document.getElementById("mensajes");
+      div.innerHTML += `<p>📥 <strong>Recibido:</strong> ${mensaje.payloadString}</p>`;
+    };
 
     // Enviar mensaje
-    const sendButton = document.getElementById('sendButton');
-    const messageInput = document.getElementById('messageInput');
-
-    sendButton.addEventListener('click', function () {
-      const message = messageInput.value.trim();
-      if (message) {
-        client.publish('juan23/chat', message); // Enviar mensaje al topic
-        messageInput.value = ''; // Limpiar el input
-        console.log('Mensaje enviado:', message);
+    function enviarMensaje() {
+      const input = document.getElementById("mensaje");
+      const texto = input.value.trim();
+      if (texto) {
+        const msg = new Paho.MQTT.Message(texto);
+        msg.destinationName = "juan23/chat";
+        client.send(msg);
+        input.value = "";
       }
-    });
-
-    // Opcional: Limpiar el input cuando presionen Enter
+    }
+  </script>
+</body>
+</html>
