@@ -2,46 +2,77 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Recibir Datos</title>
-  <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #labelRecibido { margin-top: 20px; font-weight: bold; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conexión MQTT con Flespi</title>
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
-
-  <h2>Recibir Datos</h2>
-
-  <div id="labelRecibido">Esperando mensaje...</div>
+  <h1>Conexión MQTT con Flespi</h1>
+  
+  <!-- Campo para mostrar mensaje recibido -->
+  <p><strong>Mensaje recibido:</strong></p>
+  <label id="mensaje">Esperando mensaje...</label>
+  
+  <!-- Formulario para enviar un mensaje -->
+  <p><strong>Escribe un mensaje para publicar:</strong></p>
+  <input type="text" id="inputMensaje" placeholder="Escribe aquí tu mensaje" />
+  <button id="enviarMensaje">Enviar mensaje</button>
 
   <script>
-    const TOKEN = "lwsQrY5Fd5EojF6RGubjOtHxQML4P9VmaYyLXeUG74VANy7Itn8W5GSVdnZurODR";  // 🔐 Tu token
-    const TOPIC = "juan23/chat";  // 🧵 El mismo topic
+    // Crear cliente MQTT
+    const client = mqtt.connect('wss://mqtt.flespi.io:443', {
+      username: 'FlespiToken feRmBrbgP4G0GJU9sbhFh8OKRiQuIf4ZnIi8N3ORKh2lEScKK50A6Cx4hISyrEEV',  // Reemplazar con tu token de Flespi
+      password: '',  // Sin contraseña
+    });
 
-    const client = new Paho.MQTT.Client("mqtt.flespi.io", 443, "cliente-" + Math.random());
+    // Callback de conexión
+    client.on('connect', function () {
+      console.log('Conectado a Flespi MQTT');
+      // Suscribirse al topic
+      client.subscribe('juan23/chat', function (err) {
+        if (err) {
+          console.log('Error al suscribirse al topic:', err);
+        } else {
+          console.log('Suscripción exitosa al topic "juan23/chat"');
+        }
+      });
+    });
 
-    client.onMessageArrived = (msg) => {
-      document.getElementById("labelRecibido").textContent = "Recibido: " + msg.payloadString;
-    };
-
-    client.onConnectionLost = (e) => {
-      console.log("Conexión perdida:", e.errorMessage);
-    };
-
-    client.connect({
-      useSSL: true,
-      userName: TOKEN,
-      password: "",
-      onSuccess: () => {
-        console.log("Conectado");
-        client.subscribe(TOPIC);
-      },
-      onFailure: (e) => {
-        console.log("Error al conectar:", e.errorMessage);
+    // Callback cuando se recibe un mensaje
+    client.on('message', function (topic, message) {
+      console.log('Mensaje recibido:', message.toString());
+      
+      // Verificar que el mensaje recibido es del topic correcto
+      if (topic === 'juan23/chat') {
+        // Mostrar mensaje en el label
+        document.getElementById('mensaje').textContent = message.toString();
       }
     });
-  </script>
 
+    // Callback de error
+    client.on('error', function (error) {
+      console.error('Error de conexión:', error);
+    });
+
+    // Callback de desconexión
+    client.on('close', function () {
+      console.log('Conexión cerrada');
+    });
+
+    // Publicar un mensaje en el topic
+    document.getElementById('enviarMensaje').onclick = function () {
+      const mensaje = document.getElementById('inputMensaje').value;
+      if (mensaje) {
+        // Publicar el mensaje en el topic
+        client.publish('juan23/chat', mensaje, { qos: 0, retain: false });
+        console.log('Mensaje enviado:', mensaje);
+
+        // Limpiar el campo de texto
+        document.getElementById('inputMensaje').value = '';
+      } else {
+        console.log('Por favor, ingresa un mensaje');
+      }
+    };
+  </script>
 </body>
 </html>
